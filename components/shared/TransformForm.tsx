@@ -30,6 +30,7 @@ import {
 import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils"
 import { updateCredits } from "@/lib/actions/user.actions"
 import MediaUploader from "./MediaUploader"
+import TransformImage from "./TransformImage"
 
 
 export const formSchema = z.object({
@@ -217,6 +218,16 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
                 />
               )}
             />
+
+            <TransformImage 
+              image={image}
+              type={type}
+              title={form.getValues().title}
+              isTransforming={isTransforming}
+              setIsTransforming={setIsTransforming}
+              transformationConfig={transformationConfig}
+            />
+
         </div>
 
         <div className="flex flex-col gap-4">
