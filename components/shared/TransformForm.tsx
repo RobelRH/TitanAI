@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { string, z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,6 +31,9 @@ import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils"
 import { updateCredits } from "@/lib/actions/user.actions"
 import MediaUploader from "./MediaUploader"
 import TransformImage from "./TransformImage"
+import { getCldImageUrl } from "next-cloudinary"
+import { addImage, updateImage } from "@/lib/actions/image.actions"
+import { useRouter } from "next/navigation"
 
 
 export const formSchema = z.object({
@@ -51,7 +54,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
   const [isTransforming, setIsTransforming] = useState(false);
   const [transformationConfig, settransformationConfig] = useState(config)
   const [isPending, setTransion] = useTransition();
-
+  const router = useRouter();
 
   const initValues = data && action === 'Update' ? {
     title: data?.title,
@@ -68,10 +71,72 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
   })
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-    console.log(values)
+    setIsSubmitting(true);
+
+    if(data || image) {
+      const transformUrl = getCldImageUrl({
+        width: image?.width,
+        height: image?.height,
+        src: image?.publicId,
+        ...transformationConfig
+      })
+
+      const imageData = {
+        title: values.title,
+        publicId: image?.publlicId,
+        transformationType: type,
+        width: image?.width,
+        height: image?.height,
+        config: transformationConfig,
+        secureURL: image?.secureURL,
+        transformationURL: transformUrl,
+        aspectRatio: values.aspectRatio,
+        prompt: values.prompt,
+        color: values.color
+      }
+
+      if(action === 'Add') {
+        try {
+          const newImage = await addImage({
+            image: imageData,
+            userId,
+            path: '/'
+          })
+
+          if(newImage) {
+            form.reset();
+            setImage(data)
+            router.push(`/transform/${newImage._id}`)
+          }
+
+        } catch (error) {
+          console.log(error)
+        }
+      }
+      if(action === 'Update') {
+        try {
+          const updatedImage = await updateImage({
+            image: { ...imageData, _id: data._id },
+            userId,
+            path: '/'
+          })
+
+          if(updatedImage) {
+            router.push(`/transform/${updatedImage._id}`)
+          }
+
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
+    }
+
+    setIsSubmitting(false);
+    
   }
 
   const onSelectFileHandler = (value: string, onChangeField: (value: string) => void) => {
