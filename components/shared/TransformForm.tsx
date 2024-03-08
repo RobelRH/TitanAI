@@ -15,9 +15,9 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { aspectRatioOptions, defaultValues, transformationTypes } from "@/constants"
+import { aspectRatioOptions, creditFee, defaultValues, transformationTypes } from "@/constants"
 import { CustomField } from "./CustomField"
-import { ReactNode, useState, useTransition } from "react"
+import { ReactNode, useEffect, useState, useTransition } from "react"
 import { render } from "react-dom"
 
 import {
@@ -34,6 +34,7 @@ import TransformImage from "./TransformImage"
 import { getCldImageUrl } from "next-cloudinary"
 import { addImage, updateImage } from "@/lib/actions/image.actions"
 import { useRouter } from "next/navigation"
+import { InsufficientCreditsModal } from "./InsufficientCreditsModal"
 
 
 export const formSchema = z.object({
@@ -53,7 +54,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransforming, setIsTransforming] = useState(false);
   const [transformationConfig, settransformationConfig] = useState(config)
-  const [isPending, setTransion] = useTransition();
+  const [isPending, startTransion] = useTransition();
   const router = useRouter();
 
   const initValues = data && action === 'Update' ? {
@@ -86,7 +87,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
 
       const imageData = {
         title: values.title,
-        publicId: image?.publlicId,
+        publicId: image?.publicId,
         transformationType: type,
         width: image?.width,
         height: image?.height,
@@ -179,15 +180,22 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
 
     setnewTransformation(null)
 
-    setTransion(async () => {
-      // await updateCredits(userId, )
+    startTransion(async () => {
+      await updateCredits(userId, creditFee)
     })
 
   }
 
+  useEffect(() => {
+    if(image && (type=='restore' || type==='removeBackground')) {
+      setnewTransformation(transformationType.config)
+    }
+  }, [image, transformationType.config, type])
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {creditBalance < Math.abs(creditFee) && <InsufficientCreditsModal />}
         <CustomField
           control={form.control}
           name="title"
