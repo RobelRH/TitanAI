@@ -13,7 +13,7 @@ import {v2 as cloudinary} from "cloudinary"
 const populateUser = (query: any) => query.populate({
     path: 'author',
     model: User,
-    select: '_id firstName lastName'
+    select: '_id firstName lastName clerkId'
 })
 
 // ADD IMAGE
@@ -85,6 +85,8 @@ export async function getImageById(imageId: string) {
         const image = await populateUser(Image.findById(imageId))
 
         if(!image) throw new Error("Image not found")
+
+        return JSON.parse(JSON.stringify(image));
 
     } catch (error) {
         handleError(error)
