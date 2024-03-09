@@ -77,7 +77,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
     // ✅ This will be type-safe and validated.
     setIsSubmitting(true);
 
-    if(data || image) {
+    if (data || image) {
       const transformUrl = getCldImageUrl({
         width: image?.width,
         height: image?.height,
@@ -99,7 +99,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
         color: values.color
       }
 
-      if(action === 'Add') {
+      if (action === 'Add') {
         try {
           const newImage = await addImage({
             image: imageData,
@@ -107,7 +107,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
             path: '/'
           })
 
-          if(newImage) {
+          if (newImage) {
             form.reset();
             setImage(data)
             router.push(`/transform/${newImage._id}`)
@@ -117,7 +117,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
           console.log(error)
         }
       }
-      if(action === 'Update') {
+      if (action === 'Update') {
         try {
           const updatedImage = await updateImage({
             image: { ...imageData, _id: data._id },
@@ -125,7 +125,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
             path: '/'
           })
 
-          if(updatedImage) {
+          if (updatedImage) {
             router.push(`/transform/${updatedImage._id}`)
           }
 
@@ -137,7 +137,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
     }
 
     setIsSubmitting(false);
-    
+
   }
 
   const onSelectFileHandler = (value: string, onChangeField: (value: string) => void) => {
@@ -163,15 +163,15 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
         ...prevState,
         [type]: {
           ...prevState?.[type],
-          [fieldName === 'prompt' ? 'prompt' : 'to'] : value
+          [fieldName === 'prompt' ? 'prompt' : 'to']: value
         }
       }))
-      return onChangeField(value);
-    }, 1000);
+    }, 1000)();
+    return onChangeField(value);
   }
 
   // TODO: return to set transion
-  const onTransformHandler = async() => {
+  const onTransformHandler = async () => {
     setIsTransforming(true);
 
     settransformationConfig(
@@ -187,7 +187,7 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
   }
 
   useEffect(() => {
-    if(image && (type=='restore' || type==='removeBackground')) {
+    if (image && (type == 'restore' || type === 'removeBackground')) {
       setnewTransformation(transformationType.config)
     }
   }, [image, transformationType.config, type])
@@ -276,30 +276,30 @@ const TransformForm = ({ action, data = null, userId, type, creditBalance, confi
         )}
 
         <div className="media-uploader-field">
-            <CustomField
-              control={form.control}
-              name="publicId"
-              className="flex size-full flex-col"
-              render={({ field }) => (
-                <MediaUploader
-                  onValueChange={field.onChange}
-                  setImage={setImage}
-                  publicId={field.value}
-                  image={image}
-                  type={type}
+          <CustomField
+            control={form.control}
+            name="publicId"
+            className="flex size-full flex-col"
+            render={({ field }) => (
+              <MediaUploader
+                onValueChange={field.onChange}
+                setImage={setImage}
+                publicId={field.value}
+                image={image}
+                type={type}
 
-                />
-              )}
-            />
+              />
+            )}
+          />
 
-            <TransformImage 
-              image={image}
-              type={type}
-              title={form.getValues().title}
-              isTransforming={isTransforming}
-              setIsTransforming={setIsTransforming}
-              transformationConfig={transformationConfig}
-            />
+          <TransformImage
+            image={image}
+            type={type}
+            title={form.getValues().title}
+            isTransforming={isTransforming}
+            setIsTransforming={setIsTransforming}
+            transformationConfig={transformationConfig}
+          />
 
         </div>
 
